@@ -1,43 +1,78 @@
+
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 
-import 'package:quotes_app_database/helper/quotes_db_helper.dart';
-import 'package:quotes_app_database/modal/quotes_db_modal.dart';
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
 
-class QuotesDbController extends GetxController {
-  late QuotesDbModal quotesDbModal;
-  RxList ListData = [].obs;
+import '../helper/quotes_db_helper.dart';
+import '../modal/quotes_db_modal.dart';
+
+
+
+
+class QuotesController extends GetxController {
+  RxList<Quote> quotes = <Quote>[].obs;
+  RxBool isLoading = true.obs;
+  RxString errorMessage = ''.obs;
+  RxList<Quote> favoriteQuotes = <Quote>[].obs;
+  Set<String> categories = {};
+
+
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
-    getData();
-    initDd();
-
+    fetchQuotes();
+    loadFavoriteQuotes();
   }
+  void fetchQuotes() async {
+    isLoading(true);
+    try {
+      final response = await http.get(Uri.parse('https://sheetdb.io/api/v1/accmtecgjck1x'));
+      if (response.statusCode == 200) {
+        List<dynamic> body = json.decode(response.body);
 
-  Future<void> initDd() async {
-    await QuotesDbHelper.dbHelper.database;
-  }
-
-  Future<RxList> getData()
-  async {
-    allData();
-    ListData.value=await QuotesDbHelper.dbHelper.readData();
-    return ListData;
-  }
-
-  Future<void> allData() async {
-    final data = await QuotesDbHelper.dbHelper.apiFetchData();
-    quotesDbModal = QuotesDbModal.fromMap(data!);
-    for (int i = 0; i < quotesDbModal.quote.length; i++) {
-      QuotesDbHelper.dbHelper.insertData(
-          quotesDbModal.quote[i].category,
-          quotesDbModal.quote[i].quote,
-          quotesDbModal.quote[i].author,
-          quotesDbModal.quote[i].description);
+        for (var item in body) {
+          if (item['cate'] != null) {
+            categories.add(item['cate']);
+          }
+        }
+        print('Unique Categories: ${categories.toList()}');
+        print('Total Categories: ${categories.length}');
+        quotes.assignAll(body.map((dynamic item) => Quote.fromMap(item)).toList());
+      } else {
+        errorMessage('Failed to load quotes');
+      }
+    } catch (e) {
+      errorMessage('Failed to load quotes: $e');
+    } finally {
+      isLoading(false);
     }
   }
-}
 
+  Future<void> loadFavoriteQuotes() async {
+    var dbQuotes = await DatabaseHelper.instance.getLikedQuotes();
+    favoriteQuotes.addAll(dbQuotes.map((item) => Quote.fromMap(item)).toList());
+  }
+
+
+  void likeQuote(Quote quote) async {
+    if (quote.liked == "1") {
+      await DatabaseHelper.instance.deleteQuote(quote.text);
+      DatabaseHelper.instance.getLikedQuotes();
+      quote.liked = "0";
+      favoriteQuotes.remove(quote);
+      favoriteQuotes.refresh();
+      update();
+    } else {
+      final db = await DatabaseHelper.instance.database;
+      await DatabaseHelper.instance.insertQuote(db,quote.cate,quote.text,quote.author,quote.liked);
+      quote.liked = "1";
+      favoriteQuotes.add(quote);
+    }
+    quotes.refresh();
+    favoriteQuotes.refresh();
+    update();
+  }
+
+}
