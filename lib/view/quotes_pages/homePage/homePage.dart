@@ -58,7 +58,7 @@ class homePage extends StatelessWidget {
                     children: [
                       GestureDetector(
                         onDoubleTap: () {
-                          Get.to(likePage(), transition: Transition.downToUp);
+                          Get.to(LikedQuotesScreen(), transition: Transition.downToUp);
                         },
                         child: Container(
                           height: 50,

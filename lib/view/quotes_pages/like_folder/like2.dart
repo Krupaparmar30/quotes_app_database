@@ -1,126 +1,91 @@
 
-
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../controller/quotes_db_controller.dart';
+import '../../../modal/quotes_db_modal.dart';
 
-class LikeScreen extends StatefulWidget {
+class QuotesDetailScreen extends StatelessWidget {
   final String category;
-  const LikeScreen({super.key, required this.category});
+  final List<Quote> quotes;
 
-  @override
-  State<LikeScreen> createState() => _LikeScreenState();
-}
+  const QuotesDetailScreen(
+      {super.key, required this.category, required this.quotes});
 
-class _LikeScreenState extends State<LikeScreen> {
   @override
   Widget build(BuildContext context) {
     var controller = Get.put(QuotesController());
 
-    // Filter quotes based on the selected category
-    final filteredQuotes = controller.quotes
-        .where((quote) => quote.cate == widget.category  && quote.liked == '1')
-        .toList();
-
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.greenAccent.shade100,
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Icon(CupertinoIcons.multiply),
-        ),
-        title: Text(
-          'Like Quotes',
-          //style: GoogleFonts.lato(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
-      ),
-      backgroundColor: Colors.greenAccent.shade100,
-      body: ListView.builder(
-        itemCount: filteredQuotes.length,
-        itemBuilder: (context, index) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Container(
-              height: 300,
-              width: 350,
-              decoration: BoxDecoration(
-                color: Colors.yellow.shade50,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 20, right: 20),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
+      body: Stack(
+        children: [
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/krishna.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Content
+          Positioned.fill(
+            child: Column(
+              children: [
+                // Top section with title and back icon
+                Container(
+                  padding:
+                  EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+                  child: Row(
                     children: [
+                      IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      SizedBox(width: 10),
                       Text(
-                        filteredQuotes[index].text,
-                        style: TextStyle(color: Colors.green.shade900, fontSize: 25),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 40),
-                        child: Text(
-                          "~ ${filteredQuotes[index].author}",
-                          style: TextStyle(color: Colors.green.shade900, fontSize: 20),
+                        category,
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                            //   Share.share('${quotesController.quotes[index].text} - ${quotesController.quotes[index].author}');
-                            },
-                            icon: Icon(
-                              CupertinoIcons.share,
-                              color: Colors.green.shade900,
-                              size: 30,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 30,
-                          ),
-                          IconButton(
-                            icon: Icon(filteredQuotes[index].liked == "1" ? Icons.favorite : Icons.favorite_border,
-                              color: filteredQuotes[index].liked == "1" ? Colors.red : Colors.green.shade900,
-                              size: 30,),
-                            onPressed: () {
-                              setState(() {
-                                controller.likeQuote(filteredQuotes[index]);
-                              });
-                            },
-                          ),
-                          SizedBox(
-                            width: 30,
-                          ),
-
-                          IconButton(
-                              icon: Icon(Icons.copy_rounded,color: Colors.green.shade900,size: 30,),
-                              onPressed: () {
-                                Clipboard.setData(
-                                    ClipboardData(text: '${controller.quotes[index].text} - ${controller.quotes[index].author}'));
-                                Get.snackbar(
-                                  backgroundColor: Colors.yellow.shade100,
-                                  'Copied',
-                                  'Quote copied to clipboard',
-                                  snackPosition: SnackPosition.BOTTOM,
-                                );}),
-                        ],
                       ),
                     ],
                   ),
                 ),
-              ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: quotes.length,
+                    itemBuilder: (context, index) {
+                      var quote = quotes[index];
+                      var quoteIndex = controller.favoriteQuotes.indexOf(quote);
+                      return Card(
+                        elevation: 2, // Add shadow here
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 8.0, horizontal: 16.0),
+                        child: ListTile(
+                          title: Text(
+                            quote.text,
+                            style: TextStyle(fontSize: 16),
+                          ),
+                          subtitle: Text('- ${quote.author}'),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              //   controller.(quote, quoteIndex);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }

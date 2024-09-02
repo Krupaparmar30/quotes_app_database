@@ -109,18 +109,17 @@ class DatabaseHelper {
   Future _createDB(Database db, int version) async {
     await db.execute('''
        CREATE TABLE quotes (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      text TEXT NOT NULL,
-      author TEXT NOT NULL,
-      cate TEXT NOT NULL,
-      liked TEXT NOT NULL
+      cate TEXT,
+      text TEXT,
+      author TEXT,
+      liked INTEGER
     )
     ''');
   }
 
   Future<void> insertQuote(Database db, String cate, String text, String author, String liked) async {
     await db.rawInsert('''
-    INSERT INTO quotes (cate, id, text, author, liked) VALUES (?, NULL, ?, ?, ?)
+    INSERT INTO quotes (cate, text, author, liked) VALUES (?, ?, ?, ?)
   ''', [cate, text, author, liked]);
   }
 
