@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:quotes_app_database/view/quotes_pages/homePage/homePage.dart';
+import 'package:quotes_app_database/view/quotes_pages/splesh_page/spaesh_page.dart';
 
 void main()
 {
@@ -13,8 +14,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
       getPages: [
-        GetPage(name: '/', page:() => homePage(),)
+        GetPage(name: '/', page:() => SplashScreen(),)
       ],
     );
   }
